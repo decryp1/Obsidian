@@ -2634,6 +2634,43 @@ do
         })
     end
 
+function Funcs:AddDividerWithText(Text)
+    local Groupbox = self
+    local Container = Groupbox.Container
+
+    local Divider = New("Frame", {
+        BackgroundColor3 = "MainColor",
+        BorderColor3 = "OutlineColor",
+        BorderSizePixel = 1,
+        Size = UDim2.new(1, 0, 0, 2),
+        Parent = Container,
+    })
+
+    local LeftCover = Library:MakeCover(Divider, "Left")
+    local RightCover = Library:MakeCover(Divider, "Right")
+    local TextLabel = New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0.5, 0),
+        Size = UDim2.new(0, 0, 1, 0),
+        Text = Text,
+        TextSize = 14,
+        TextColor3 = "FontColor",
+        AnchorPoint = Vector2.new(0.5, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
+        Parent = Divider,
+    })
+    local _, Y = Library:GetTextBounds(Text, Library.Scheme.Font, 14)
+    Divider.Size = UDim2.new(1, 0, 0, Y)
+    Library:UpdateDPI(Divider, { Size = UDim2.new(1, 0, 0, Y) })
+
+    Groupbox:Resize()
+
+    table.insert(Groupbox.Elements, {
+        Holder = Divider,
+        Type = "Divider",
+    })
+end
+
     function Funcs:AddLabel(...)
         local Data = {}
 
