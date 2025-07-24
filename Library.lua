@@ -1364,7 +1364,7 @@ function Library:AddDividerWithText(Text: string, Groupbox: GuiObject)
     Library:UpdateDPI(Divider, { Size = UDim2.new(1, 0, 0, Y) })
     return Divider
 end
-print("yo")
+print("yo1")
 function Library:MakeOutline(Frame: GuiObject, Corner: number?, ZIndex: number?)
     local Holder = New("Frame", {
         BackgroundColor3 = "Dark",
@@ -2670,7 +2670,7 @@ function Funcs:AddDividerWithText(Text)
         Type = "Divider",
     })
 end
-print("yo2")
+print("yo3")
     function Funcs:AddLabel(...)
         local Data = {}
 
