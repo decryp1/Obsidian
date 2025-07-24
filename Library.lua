@@ -2638,7 +2638,6 @@ function Funcs:AddDividerWithText(Text)
     local Groupbox = self
     local Container = Groupbox.Container
     local ContainerWidth = Container.AbsoluteSize.X
-
     local Holder = New("Frame", {
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, 20),
@@ -2647,22 +2646,23 @@ function Funcs:AddDividerWithText(Text)
 
     local TextWidth, TextHeight = Library:GetTextBounds(Text, Library.Scheme.Font, 14, ContainerWidth)
     local TotalPadding = 10 * Library.DPIScale
+    local DividerHeight = 2 * Library.DPIScale
 
-    local AvailableWidth = ContainerWidth - TextWidth - TotalPadding
+    local AvailableWidth = ContainerWidth - TextWidth - (2 * TotalPadding)
     local DividerWidth = math.max(0, AvailableWidth / 2)
 
     local LeftDivider = New("Frame", {
         BackgroundColor3 = Library.Scheme.MainColor,
         BorderColor3 = Library.Scheme.OutlineColor,
         BorderSizePixel = 1,
-        Size = UDim2.new(0, DividerWidth, 0, 1),
-        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0, DividerWidth, 0, DividerHeight),
+        Position = UDim2.new(0, 0, 0.5, -DividerHeight / 2),
         Parent = Holder,
     })
 
     local TextLabel = New("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, DividerWidth, 0, 0),
+        Position = UDim2.new(0, DividerWidth + TotalPadding, 0.5, -TextHeight / 2),
         Size = UDim2.new(0, TextWidth, 0, TextHeight),
         Text = Text,
         TextSize = 14,
@@ -2674,8 +2674,8 @@ function Funcs:AddDividerWithText(Text)
         BackgroundColor3 = Library.Scheme.MainColor,
         BorderColor3 = Library.Scheme.OutlineColor,
         BorderSizePixel = 1,
-        Size = UDim2.new(0, DividerWidth, 0, 1),
-        Position = UDim2.new(0, DividerWidth + TextWidth + TotalPadding, 0, 0),
+        Size = UDim2.new(0, DividerWidth, 0, DividerHeight),
+        Position = UDim2.new(0, DividerWidth + TextWidth + TotalPadding, 0.5, -DividerHeight / 2),
         Parent = Holder,
     })
 
@@ -2689,7 +2689,7 @@ function Funcs:AddDividerWithText(Text)
         Type = "Divider",
     })
 end
-
+print("upd")
     function Funcs:AddLabel(...)
         local Data = {}
 
