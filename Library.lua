@@ -1354,7 +1354,7 @@ function Library:AddDividerWithText(Text: string, Groupbox: GuiObject)
         Size = UDim2.new(0, 0, 1, 0),
         Text = Text,
         TextSize = 14,
-        TextColor3 = Color3.fromRGB(100, 0, 155),
+        TextColor3 = Library.Scheme.FontColor,
         AnchorPoint = Vector2.new(0.5, 0),
         AutomaticSize = Enum.AutomaticSize.X,
         Parent = Divider,
@@ -2639,8 +2639,8 @@ function Funcs:AddDividerWithText(Text)
     local Container = Groupbox.Container
 
     local Divider = New("Frame", {
-        BackgroundColor3 = "MainColor",
-        BorderColor3 = "OutlineColor",
+        BackgroundColor3 = Library.Scheme.MainColor,
+        BorderColor3 = Library.Scheme.OutlineColor,
         BorderSizePixel = 1,
         Size = UDim2.new(1, 0, 0, 2),
         Parent = Container,
@@ -2654,7 +2654,7 @@ function Funcs:AddDividerWithText(Text)
         Size = UDim2.new(0, 0, 1, 0),
         Text = Text,
         TextSize = 14,
-        TextColor3 = Color3.fromRGB(100, 0, 155),
+        TextColor3 = Library.Scheme.FontColor,
         AnchorPoint = Vector2.new(0.5, 0),
         AutomaticSize = Enum.AutomaticSize.X,
         Parent = Divider,
