@@ -1341,6 +1341,30 @@ function Library:MakeLine(Frame: GuiObject, Info)
     return Line
 end
 
+function Library:AddDividerWithText(Text: string, Groupbox: GuiObject)
+    local Divider = Library:MakeLine(Groupbox, {
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(1, 0, 0, 1),
+    })
+    local LeftCover = Library:MakeCover(Divider, "Left")
+    local RightCover = Library:MakeCover(Divider, "Right")
+    local TextLabel = New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0.5, 0),
+        Size = UDim2.new(0, 0, 1, 0),
+        Text = Text,
+        TextSize = 14,
+        TextColor3 = "FontColor",
+        AnchorPoint = Vector2.new(0.5, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
+        Parent = Divider,
+    })
+    local _, Y = Library:GetTextBounds(Text, Library.Scheme.Font, 14)
+    Divider.Size = UDim2.new(1, 0, 0, Y)
+    Library:UpdateDPI(Divider, { Size = UDim2.new(1, 0, 0, Y) })
+    return Divider
+end
+
 function Library:MakeOutline(Frame: GuiObject, Corner: number?, ZIndex: number?)
     local Holder = New("Frame", {
         BackgroundColor3 = "Dark",
