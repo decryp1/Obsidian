@@ -2654,7 +2654,7 @@ function Funcs:AddDividerWithText(Text)
         Size = UDim2.new(0, 0, 1, 0),
         Text = Text,
         TextSize = 14,
-        TextColor3 = "FontColor",
+        TextColor3 = Color3.fromRGB(100, 0, 155),
         AnchorPoint = Vector2.new(0.5, 0),
         AutomaticSize = Enum.AutomaticSize.X,
         Parent = Divider,
