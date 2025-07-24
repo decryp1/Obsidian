@@ -2637,36 +2637,55 @@ do
 function Funcs:AddDividerWithText(Text)
     local Groupbox = self
     local Container = Groupbox.Container
+    local ContainerWidth = Container.AbsoluteSize.X
 
-    local Divider = New("Frame", {
-        BackgroundColor3 = Library.Scheme.MainColor,
-        BorderColor3 = Library.Scheme.OutlineColor,
-        BorderSizePixel = 1,
-        Size = UDim2.new(1, 0, 0, 2),
+    local Holder = New("Frame", {
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, 20),
         Parent = Container,
     })
 
-    local LeftCover = Library:MakeCover(Divider, "Left")
-    local RightCover = Library:MakeCover(Divider, "Right")
+    local TextWidth, TextHeight = Library:GetTextBounds(Text, Library.Scheme.Font, 14, ContainerWidth)
+    local TotalPadding = 10 * Library.DPIScale
+
+    local AvailableWidth = ContainerWidth - TextWidth - TotalPadding
+    local DividerWidth = math.max(0, AvailableWidth / 2)
+
+    local LeftDivider = New("Frame", {
+        BackgroundColor3 = Library.Scheme.MainColor,
+        BorderColor3 = Library.Scheme.OutlineColor,
+        BorderSizePixel = 1,
+        Size = UDim2.new(0, DividerWidth, 0, 1),
+        Position = UDim2.new(0, 0, 0, 0),
+        Parent = Holder,
+    })
+
     local TextLabel = New("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.fromScale(0.5, 0),
-        Size = UDim2.new(0, 0, 1, 0),
+        Position = UDim2.new(0, DividerWidth, 0, 0),
+        Size = UDim2.new(0, TextWidth, 0, TextHeight),
         Text = Text,
         TextSize = 14,
         TextColor3 = Library.Scheme.FontColor,
-        AnchorPoint = Vector2.new(0.5, 0),
-        AutomaticSize = Enum.AutomaticSize.X,
-        Parent = Divider,
+        Parent = Holder,
     })
-    local _, Y = Library:GetTextBounds(Text, Library.Scheme.Font, 14)
-    Divider.Size = UDim2.new(1, 0, 0, Y)
-    Library:UpdateDPI(Divider, { Size = UDim2.new(1, 0, 0, Y) })
+
+    local RightDivider = New("Frame", {
+        BackgroundColor3 = Library.Scheme.MainColor,
+        BorderColor3 = Library.Scheme.OutlineColor,
+        BorderSizePixel = 1,
+        Size = UDim2.new(0, DividerWidth, 0, 1),
+        Position = UDim2.new(0, DividerWidth + TextWidth + TotalPadding, 0, 0),
+        Parent = Holder,
+    })
+
+    Holder.Size = UDim2.new(1, 0, 0, TextHeight)
+    Library:UpdateDPI(Holder, { Size = UDim2.new(1, 0, 0, TextHeight) })
 
     Groupbox:Resize()
 
     table.insert(Groupbox.Elements, {
-        Holder = Divider,
+        Holder = Holder,
         Type = "Divider",
     })
 end
