@@ -286,6 +286,27 @@ end)
 -- This should print to the console: "MySlider was changed! New value: 3"
 Options.MySlider:SetValue(3)
 
+LeftGroupBox:AddSlider("MySlider2", {
+	Text = "This is my custom display slider!",
+	Default = 0,
+	Min = 0,
+	Max = 5,
+	Rounding = 0,
+	Compact = false,
+
+	FormatDisplayValue = function(slider, value)
+		if value == slider.Max then return 'Everything' end
+		if value == slider.Min then return 'Nothing' end
+		-- If you return nil, the default formatting will be applied
+	end,
+
+	Tooltip = "I am a slider!", -- Information shown when you hover over the slider
+	DisabledTooltip = "I am disabled!", -- Information shown when you hover over the slider while it's disabled
+
+	Disabled = false, -- Will disable the slider (true / false)
+	Visible = true, -- Will make the slider invisible (true / false)
+})
+
 -- Groupbox:AddInput
 -- Arguments: Idx, Info
 LeftGroupBox:AddInput("MyTextbox", {
@@ -545,7 +566,7 @@ LeftGroupBox:AddLabel("Keybind"):AddKeyPicker("KeyPicker", {
 	SyncToggleState = false,
 
 	-- You can define custom Modes but I have never had a use for it.
-	Mode = "Toggle", -- Modes: Always, Toggle, Hold
+	Mode = "Toggle", -- Modes: Always, Toggle, Hold, Press (example down below)
 
 	Text = "Auto lockpick safes", -- Text to display in the keybind menu
 	NoUI = false, -- Set to true if you want to hide from the Keybind menu,
@@ -572,9 +593,7 @@ Options.KeyPicker:OnChanged(function()
 end)
 
 task.spawn(function()
-	while true do
-		wait(1)
-
+	while task.wait(1) do
 		-- example for checking if a keybind is being pressed
 		local state = Options.KeyPicker:GetState()
 		if state then
@@ -588,6 +607,27 @@ task.spawn(function()
 end)
 
 Options.KeyPicker:SetValue({ "MB2", "Hold" }) -- Sets keybind to MB2, mode to Hold
+
+-- Label:KeyPicker (Press Mode)
+
+local KeybindNumber = 0
+
+LeftGroupBox:AddLabel("Press Keybind"):AddKeyPicker("KeyPicker2", {
+	-- Example: Press Keybind which you use to run a callback when the key was pressed.
+
+	Default = "X", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
+
+	Mode = "Press",
+	WaitForCallback = false, -- Locks the keybind during the execution of Callback and OnChanged.
+
+	Text = "Increase Number", -- Text to display in the keybind menu
+
+	-- Occurs when the keybind is clicked, Value is always `true` for Press keybind.
+	Callback = function()
+		KeybindNumber = KeybindNumber + 1
+		print("[cb] Keybind clicked! Number increased to:", KeybindNumber)
+	end
+})
 
 -- Long text label to demonstrate UI scrolling behaviour.
 local LeftGroupBox2 = Tabs.Main:AddLeftGroupbox("Groupbox #2")

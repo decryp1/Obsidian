@@ -1,3 +1,28 @@
+## 14.09.2025
+
+```diff
++ Added `Press` mode to `KeyPicker`
+```
+
+## 19.08.2025
+
+```diff
++ Fixed `KeyPicker` in Toggle mode not working properly when Key is nil
+```
+
+### 12.08.2025
+
+```diff
++ Fixed `Tab:UpdateWarningBox()` not resizing properly
+```
+
+### 10.08.2025
+
+```diff
++ Added a LockSize option `Tab:UpdateWarningBox()` to set the maximum size of the warning box to 3.25 size of the Tab Container (optional)
++ Added support for mouse button 3 (middle click)
+```
+
 ### 17.07.2025
 
 ```diff
