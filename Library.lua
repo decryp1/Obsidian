@@ -4430,8 +4430,19 @@ print("upd")
         local Dragging, Pinching = false, false
         local LastMousePos, LastPinchDist = nil, 0
 
+        local ViewportObject = Info.Object
+        if Info.Clone and typeof(Info.Object) == "Instance" then
+            if Info.Object.Archivable then
+                ViewportObject = ViewportObject:Clone()
+            else
+                Info.Object.Archivable = true
+                ViewportObject = ViewportObject:Clone()
+                Info.Object.Archivable = false
+            end
+        end
+
         local Viewport = {
-            Object = if Info.Clone then Info.Object:Clone() else Info.Object,
+            Object = ViewportObject,
             Camera = if not Info.Camera then Instance.new("Camera") else Info.Camera,
             Interactive = Info.Interactive,
             AutoFocus = Info.AutoFocus,
