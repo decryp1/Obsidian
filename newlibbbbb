@@ -1824,7 +1824,6 @@ local BaseAddons = {}
 do
     local Funcs = {}
 
-    -- ADD THIS FUNCTION HERE (RIGHT BEFORE AddKeyPicker)
     function Funcs:AddDividerWithText(Idx, Info)
         Info = Library:Validate(Info or {}, {
             Text   = "Section",
