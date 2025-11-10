@@ -1823,119 +1823,106 @@ local KeyIcon = Library:GetIcon("key")
 local BaseAddons = {}
 do
     local Funcs = {}
-	function Funcs:AddDividerWithText(Idx, Info)
-    Info = Library:Validate(Info or {}, {
-        Text   = "Section",
-        Height = 30,
-    })
 
-    local Groupbox  = self
-    local Container = Groupbox.Container
-
-    local Holder = New("Frame", {
-        Name = "DividerHolder",
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, Info.Height),
-        Parent = Container,
-    })
-
-    local Box = New("Frame", {
-        AnchorPoint = Vector2.new(0, 1),
-        BackgroundColor3 = "MainColor",
-        BorderColor3 = "OutlineColor",
-        BorderSizePixel = 1,
-        Position = UDim2.fromScale(0, 1),
-        Size = UDim2.fromScale(1, 1),
-        Parent = Holder,
-    })
-    Library:AddToRegistry(Box, {
-        BackgroundColor3 = "MainColor",
-        BorderColor3     = "OutlineColor",
-    })
-
-    New("UIPadding", {
-        PaddingBottom = UDim.new(0, 3),
-        PaddingLeft   = UDim.new(0, 8),
-        PaddingRight  = UDim.new(0, 8),
-        PaddingTop    = UDim.new(0, 4),
-        Parent = Box,
-    })
-
-    local Content = New("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.fromScale(1, 1),
-        Parent = Box,
-    })
-
-    local LeftLine = New("Frame", {
-        BackgroundColor3 = "OutlineColor",
-        BorderSizePixel = 0,
-        AnchorPoint = Vector2.new(0, 0.5),
-        Position = UDim2.fromScale(0, 0.5),
-        Size = UDim2.new(0.4, -12, 0, 1),
-        Parent = Content,
-    })
-    Library:AddToRegistry(LeftLine, { BackgroundColor3 = "OutlineColor" })
-
-    local Label = New("TextLabel", {
-        BackgroundTransparency = 1,
-        FontFace = Library.Scheme.Font,
-        Text = Info.Text,
-        TextColor3 = "FontColor",
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        AnchorPoint = Vector2.new(0.5, 0),
-        Position = UDim2.fromScale(0.5, 0),
-        Size = UDim2.new(0.2, 0, 1, 0),
-        Parent = Content,
-    })
-    Library:AddToRegistry(Label, { TextColor3 = "FontColor" })
-
-    local RightLine = New("Frame", {
-        BackgroundColor3 = "OutlineColor",
-        BorderSizePixel = 0,
-        AnchorPoint = Vector2.new(1, 0.5),
-        Position = UDim2.fromScale(1, 0.5),
-        Size = UDim2.new(0.4, -12, 0, 1),
-        Parent = Content,
-    })
-    Library:AddToRegistry(RightLine, { BackgroundColor3 = "OutlineColor" })
-
-    local function UpdateHeight()
-        local scaled = math.max(20, Info.Height * Library.DPIScale)
-        Holder.Size = UDim2.new(1, 0, 0, scaled)
-        Groupbox:Resize()
-    end
-
-    UpdateHeight()
-    Library:ConnectDPI(UpdateHeight)
-
-	local Divider = {
-        Type   = "DividerWithText",
-        Holder = Holder,
-        Text   = Info.Text,
-        Height = Info.Height,
-    }
-
-    function Divider:SetText(newText: string)
-        assert(typeof(newText) == "string", "Text must be a string")
-        Label.Text = newText
-        Divider.Text = newText
-    end
-
-    function Divider:SetHeight(newHeight: number)
-        assert(typeof(newHeight) == "number" and newHeight > 0, "Height must be > 0")
-        Info.Height = newHeight
-        Divider.Height = newHeight
+    -- ADD THIS FUNCTION HERE (RIGHT BEFORE AddKeyPicker)
+    function Funcs:AddDividerWithText(Idx, Info)
+        Info = Library:Validate(Info or {}, {
+            Text   = "Section",
+            Height = 30,
+        })
+        local Groupbox  = self
+        local Container = Groupbox.Container
+        local Holder = New("Frame", {
+            Name = "DividerHolder",
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, Info.Height),
+            Parent = Container,
+        })
+        local Box = New("Frame", {
+            AnchorPoint = Vector2.new(0, 1),
+            BackgroundColor3 = "MainColor",
+            BorderColor3 = "OutlineColor",
+            BorderSizePixel = 1,
+            Position = UDim2.fromScale(0, 1),
+            Size = UDim2.fromScale(1, 1),
+            Parent = Holder,
+        })
+        Library:AddToRegistry(Box, {
+            BackgroundColor3 = "MainColor",
+            BorderColor3     = "OutlineColor",
+        })
+        New("UIPadding", {
+            PaddingBottom = UDim.new(0, 3),
+            PaddingLeft   = UDim.new(0, 8),
+            PaddingRight  = UDim.new(0, 8),
+            PaddingTop    = UDim.new(0, 4),
+            Parent = Box,
+        })
+        local Content = New("Frame", {
+            BackgroundTransparency = 1,
+            Size = UDim2.fromScale(1, 1),
+            Parent = Box,
+        })
+        local LeftLine = New("Frame", {
+            BackgroundColor3 = "OutlineColor",
+            BorderSizePixel = 0,
+            AnchorPoint = Vector2.new(0, 0.5),
+            Position = UDim2.fromScale(0, 0.5),
+            Size = UDim2.new(0.4, -12, 0, 1),
+            Parent = Content,
+        })
+        Library:AddToRegistry(LeftLine, { BackgroundColor3 = "OutlineColor" })
+        local Label = New("TextLabel", {
+            BackgroundTransparency = 1,
+            FontFace = Library.Scheme.Font,
+            Text = Info.Text,
+            TextColor3 = "FontColor",
+            TextSize = 14,
+            TextXAlignment = Enum.TextXAlignment.Center,
+            AnchorPoint = Vector2.new(0.5, 0),
+            Position = UDim2.fromScale(0.5, 0),
+            Size = UDim2.new(0.2, 0, 1, 0),
+            Parent = Content,
+        })
+        Library:AddToRegistry(Label, { TextColor3 = "FontColor" })
+        local RightLine = New("Frame", {
+            BackgroundColor3 = "OutlineColor",
+            BorderSizePixel = 0,
+            AnchorPoint = Vector2.new(1, 0.5),
+            Position = UDim2.fromScale(1, 0.5),
+            Size = UDim2.new(0.4, -12, 0, 1),
+            Parent = Content,
+        })
+        Library:AddToRegistry(RightLine, { BackgroundColor3 = "OutlineColor" })
+        local function UpdateHeight()
+            local scaled = math.max(20, Info.Height * Library.DPIScale)
+            Holder.Size = UDim2.new(1, 0, 0, scaled)
+            Groupbox:Resize()
+        end
         UpdateHeight()
+        Library:ConnectDPI(UpdateHeight)
+        local Divider = {
+            Type   = "DividerWithText",
+            Holder = Holder,
+            Text   = Info.Text,
+            Height = Info.Height,
+        }
+        function Divider:SetText(newText: string)
+            assert(typeof(newText) == "string", "Text must be a string")
+            Label.Text = newText
+            Divider.Text = newText
+        end
+        function Divider:SetHeight(newHeight: number)
+            assert(typeof(newHeight) == "number" and newHeight > 0, "Height must be > 0")
+            Info.Height = newHeight
+            Divider.Height = newHeight
+            UpdateHeight()
+        end
+        Groupbox:Resize()
+        table.insert(Groupbox.Elements, Divider)
+        Options[Idx] = Divider
+        return Divider
     end
-
-    Groupbox:Resize()
-    table.insert(Groupbox.Elements, Divider)
-    Options[Idx] = Divider
-    return Divider
-end
-
 
     function Funcs:AddKeyPicker(Idx, Info)
         Info = Library:Validate(Info, Templates.KeyPicker)
