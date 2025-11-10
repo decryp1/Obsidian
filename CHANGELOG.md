@@ -1,3 +1,35 @@
+## 09.11.2025
+
+```diff
++ Added Library.ImageManager (https://docs.mspaint.cc/obsidian/core/library#custom-asset-icons)
+```
+
+## 02.11.2025
+
+```diff
++ Warning Box now follows the UI style of Obsidian (rounded corners with outlines)
++ Watermark now correctly resizes itself with new line characters
+```
+
+## 01.11.2025
+
+```diff
++ The ignored indexes (SaveManager.SetIgnoreIndexes) are no longer applied when you load a configuration that contains them
+```
+
+## 5.10.2025
+
+```diff
++ Added support for modifier keys in KeyPicker (for example: LCtrl + E)
++ Fixed DoClick not calling the correct callbacks
+```
+
+## 17.09.2025
+
+```diff
++ Added support for custom icons (rbxasset, rbxassetid, rbxthumb, getcustomasset) for Tabs and Groupboxes
+```
+
 ## 14.09.2025
 
 ```diff

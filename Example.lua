@@ -1,3 +1,4 @@
+
 -- example script by https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua and modified by deivid
 -- You can suggest changes with a pull request or something
 
@@ -47,15 +48,15 @@ local Tabs = {
 --[[
 Example of how to add a warning box to a tab; the title AND text support rich text formatting.
 
-local WarningTab = Tabs["UI Settings"]:AddTab("Warning Box", "user")
+local UISettingsTab = Tabs["UI Settings"]
 
-WarningTab:UpdateWarningBox({
+UISettingsTab:UpdateWarningBox({
 	Visible = true,
 	Title = "Warning",
 	Text = "This is a warning box!",
 })
 
-]]
+--]]
 
 -- Groupbox and Tabbox inherit the same functions
 -- except Tabboxes you have to call the functions on a tab (Tabbox:AddTab(Name))
@@ -576,9 +577,9 @@ LeftGroupBox:AddLabel("Keybind"):AddKeyPicker("KeyPicker", {
 		print("[cb] Keybind clicked!", Value)
 	end,
 
-	-- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
-	ChangedCallback = function(New)
-		print("[cb] Keybind changed!", New)
+	-- Occurs when the keybind itself is changed, `NewKey` is a KeyCode Enum OR a UserInputType Enum, `NewModifiers` is a table with KeyCode Enum(s) or nil
+	ChangedCallback = function(NewKey, NewModifiers)
+		print("[cb] Keybind changed!", NewKey, table.unpack(NewModifiers or {}))
 	end,
 })
 
@@ -589,7 +590,7 @@ Options.KeyPicker:OnClick(function()
 end)
 
 Options.KeyPicker:OnChanged(function()
-	print("Keybind changed!", Options.KeyPicker.Value)
+	print("Keybind changed!", Options.KeyPicker.Value, table.unpack(Options.KeyPicker.Modifiers or {}))
 end)
 
 task.spawn(function()
