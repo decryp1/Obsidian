@@ -8329,4 +8329,5 @@ Library:GiveSignal(Teams.ChildAdded:Connect(OnTeamChange))
 Library:GiveSignal(Teams.ChildRemoved:Connect(OnTeamChange))
 
 getgenv().Library = Library
+print('hello')
 return Library
