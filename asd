@@ -7878,7 +7878,7 @@ function Library:CreateConsole(Info)
         local InputBox = New("TextBox", {
             BackgroundTransparency = 1,
             ClearTextOnFocus = true,
-            PlaceholderText = "> execute lua...",
+            PlaceholderText = "> execute...",
             Size = UDim2.new(1, -52, 1, 0),
             Text = "",
             TextSize = 13,
