@@ -8198,32 +8198,32 @@ function Library:CreateConsole(Info)
         local stamp = TimestampEnabled and ("[" .. os.date("%H:%M:%S") .. "] ") or ""
         local displayText = stamp .. tostring(text)
 
-        local EntryHolder = New("Frame", {
-            BackgroundTransparency = 1,
-            ClipsDescendants = false,
-            Size = UDim2.new(1, 0, 0, 0),
-            AutomaticSize = Enum.AutomaticSize.Y,
-            ZIndex = 2,
-            Parent = LogFrame,
-        })
-
-        local EntryLabel = New("TextLabel", {
-            BackgroundTransparency = 1,
-            RichText = false,
-            Size = UDim2.new(1, 0, 0, 0),
-            AutomaticSize = Enum.AutomaticSize.Y,
-            Text = displayText,
-            TextColor3 = color,
-            TextSize = 13,
-            TextTransparency = 1,
-            TextWrapped = true,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Top,
-            ZIndex = 2,
-            Parent = EntryHolder,
-        })
-
-        EntryLabel.Position = UDim2.fromOffset(-8, 0)
+		local EntryHolder = New("Frame", {
+		    BackgroundTransparency = 1,
+		    Size = UDim2.new(1, 0, 0, 16),
+		    ZIndex = 2,
+		    Parent = LogFrame,
+		})
+		
+		local EntryLabel = New("TextLabel", {
+		    BackgroundTransparency = 1,
+		    RichText = false,
+		    Size = UDim2.new(1, 0, 1, 0),
+		    Text = displayText,
+		    TextColor3 = color,
+		    TextSize = 13,
+		    TextTransparency = 1,
+		    TextWrapped = true,
+		    TextXAlignment = Enum.TextXAlignment.Left,
+		    TextYAlignment = Enum.TextYAlignment.Top,
+		    ZIndex = 2,
+		    Parent = EntryHolder,
+		})
+		
+		task.defer(function()
+		    local _, h = Library:GetTextBounds(displayText, Library.Scheme.Font, 13, LogFrame.AbsoluteSize.X - 18)
+		    EntryHolder.Size = UDim2.new(1, 0, 0, math.max(16, h))
+		end)
         TweenService:Create(EntryLabel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             TextTransparency = 0,
             Position = UDim2.fromOffset(0, 0),
