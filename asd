@@ -7769,11 +7769,7 @@ function Library:CreateConsole(Info)
     Info.Size = Info.Size or UDim2.fromOffset(480, 320)
     Info.Position = Info.Position or UDim2.fromOffset(6, 6)
 
-    local Console = {
-        Logs = {},
-        Visible = true,
-        Paused = false,
-    }
+    local Console = { Logs = {}, Visible = true, Paused = false }
 
     local LogCount = 0
     local SettingsOpen = false
@@ -7801,7 +7797,7 @@ function Library:CreateConsole(Info)
     local TitleBar = New("Frame", {
         BackgroundColor3 = "MainColor",
         Size = UDim2.new(1, 0, 0, 34),
-        ZIndex = 3,
+        ZIndex = 5,
         Parent = Holder,
     })
     New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius - 1), Parent = TitleBar })
@@ -7809,14 +7805,10 @@ function Library:CreateConsole(Info)
         BackgroundColor3 = "MainColor",
         Position = UDim2.new(0, 0, 1, -6),
         Size = UDim2.new(1, 0, 0, 6),
-        ZIndex = 3,
+        ZIndex = 5,
         Parent = TitleBar,
     })
-    Library:MakeLine(Holder, {
-        Position = UDim2.fromOffset(0, 34),
-        Size = UDim2.new(1, 0, 0, 1),
-        ZIndex = 4,
-    })
+    Library:MakeLine(Holder, { Position = UDim2.fromOffset(0, 34), Size = UDim2.new(1, 0, 0, 1), ZIndex = 6 })
 
     local TitleLabel = New("TextLabel", {
         BackgroundTransparency = 1,
@@ -7825,7 +7817,7 @@ function Library:CreateConsole(Info)
         Text = Info.Title,
         TextSize = 15,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 4,
+        ZIndex = 6,
         Parent = TitleBar,
     })
     New("UIPadding", { PaddingLeft = UDim.new(0, 12), Parent = TitleLabel })
@@ -7838,7 +7830,7 @@ function Library:CreateConsole(Info)
         Text = "•••",
         TextSize = 14,
         TextTransparency = 0.4,
-        ZIndex = 5,
+        ZIndex = 7,
         Parent = TitleBar,
     })
 
@@ -7846,37 +7838,17 @@ function Library:CreateConsole(Info)
         BackgroundColor3 = "MainColor",
         Position = UDim2.fromOffset(-SETTINGS_W, 35),
         Size = UDim2.new(0, SETTINGS_W, 1, -35),
-        ZIndex = 6,
+        ZIndex = 8,
         ClipsDescendants = true,
         Parent = Holder,
     })
     New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius - 1), Parent = SettingsPanel })
-    New("Frame", {
-        BackgroundColor3 = "MainColor",
-        Position = UDim2.new(1, -6, 0, 0),
-        Size = UDim2.new(0, 6, 1, 0),
-        ZIndex = 6,
-        Parent = SettingsPanel,
-    })
-    Library:MakeLine(SettingsPanel, {
-        AnchorPoint = Vector2.new(1, 0),
-        Position = UDim2.fromScale(1, 0),
-        Size = UDim2.new(0, 1, 1, 0),
-        ZIndex = 7,
-    })
+    New("Frame", { BackgroundColor3 = "MainColor", Position = UDim2.new(1, -6, 0, 0), Size = UDim2.new(0, 6, 1, 0), ZIndex = 8, Parent = SettingsPanel })
+    Library:MakeLine(SettingsPanel, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.new(0, 1, 1, 0), ZIndex = 9 })
 
-    local SettingsList = New("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        ZIndex = 7,
-        Parent = SettingsPanel,
-    })
+    local SettingsList = New("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), ZIndex = 9, Parent = SettingsPanel })
     New("UIListLayout", { Padding = UDim.new(0, 2), Parent = SettingsList })
-    New("UIPadding", {
-        PaddingTop = UDim.new(0,8), PaddingLeft = UDim.new(0,8),
-        PaddingRight = UDim.new(0,8), PaddingBottom = UDim.new(0,8),
-        Parent = SettingsList
-    })
+    New("UIPadding", { PaddingTop = UDim.new(0,8), PaddingLeft = UDim.new(0,8), PaddingRight = UDim.new(0,8), PaddingBottom = UDim.new(0,8), Parent = SettingsList })
 
     local function makeSettingsEntry(text, callback)
         local btn = New("TextButton", {
@@ -7886,7 +7858,7 @@ function Library:CreateConsole(Info)
             Text = text,
             TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 8,
+            ZIndex = 10,
             Parent = SettingsList,
         })
         New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius - 1), Parent = btn })
@@ -7948,7 +7920,7 @@ function Library:CreateConsole(Info)
         Position = UDim2.fromOffset(0, logAreaTop + 1),
         Size = UDim2.new(1, 0, 1, -(logAreaTop + 1 + inputBarHeight + footerHeight)),
         ClipsDescendants = true,
-        ZIndex = 2,
+        ZIndex = 3,
         Parent = Holder,
     })
 
@@ -7959,7 +7931,7 @@ function Library:CreateConsole(Info)
         ScrollBarImageColor3 = "OutlineColor",
         ScrollBarThickness = 2,
         Size = UDim2.fromScale(1, 1),
-        ZIndex = 2,
+        ZIndex = 4,
         Parent = LogAreaHolder,
     })
     New("UIListLayout", { Padding = UDim.new(0, 3), Parent = LogFrame })
@@ -7974,7 +7946,7 @@ function Library:CreateConsole(Info)
             AnchorPoint = Vector2.new(0, 1),
             Position = UDim2.new(0, 0, 1, -(footerHeight + inputBarHeight)),
             Size = UDim2.new(1, 0, 0, 1),
-            ZIndex = 3,
+            ZIndex = 5,
         })
 
         local InputBar = New("Frame", {
@@ -7982,19 +7954,19 @@ function Library:CreateConsole(Info)
             BackgroundTransparency = 1,
             Position = UDim2.new(0, 0, 1, -(footerHeight + inputBarHeight)),
             Size = UDim2.new(1, 0, 0, inputBarHeight),
-            ZIndex = 3,
+            ZIndex = 5,
             Parent = Holder,
         })
 
         local InputBox = New("TextBox", {
             BackgroundTransparency = 1,
             ClearTextOnFocus = true,
-            PlaceholderText = "> execute lua...",
+            PlaceholderText = "run",
             Size = UDim2.new(1, -52, 1, 0),
             Text = "",
             TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 4,
+            ZIndex = 6,
             Parent = InputBar,
         })
         New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = InputBox })
@@ -8006,17 +7978,13 @@ function Library:CreateConsole(Info)
             Size = UDim2.fromOffset(42, 20),
             Text = "run",
             TextSize = 13,
-            ZIndex = 4,
+            ZIndex = 6,
             Parent = InputBar,
         })
         New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius - 1), Parent = RunButton })
 
-        RunButton.MouseEnter:Connect(function()
-            TweenService:Create(RunButton, Library.TweenInfo, {BackgroundColor3 = Library:GetBetterColor(Library.Scheme.AccentColor, 6)}):Play()
-        end)
-        RunButton.MouseLeave:Connect(function()
-            TweenService:Create(RunButton, Library.TweenInfo, {BackgroundColor3 = Library.Scheme.AccentColor}):Play()
-        end)
+        RunButton.MouseEnter:Connect(function() TweenService:Create(RunButton, Library.TweenInfo, {BackgroundColor3 = Library:GetBetterColor(Library.Scheme.AccentColor, 6)}):Play() end)
+        RunButton.MouseLeave:Connect(function() TweenService:Create(RunButton, Library.TweenInfo, {BackgroundColor3 = Library.Scheme.AccentColor}):Play() end)
 
         local function runInput()
             local src = InputBox.Text
@@ -8041,7 +8009,7 @@ function Library:CreateConsole(Info)
         BackgroundColor3 = function() return Library:GetBetterColor(Library.Scheme.BackgroundColor, 4) end,
         Position = UDim2.fromScale(0, 1),
         Size = UDim2.new(1, 0, 0, footerHeight),
-        ZIndex = 3,
+        ZIndex = 5,
         Parent = Holder,
     })
     do
@@ -8051,7 +8019,7 @@ function Library:CreateConsole(Info)
             AnchorPoint = Vector2.new(0, 1),
             Position = UDim2.new(0, 0, 1, -footerHeight),
             Size = UDim2.new(1, 0, 0, 1),
-            ZIndex = 4,
+            ZIndex = 6,
         })
     end
     New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius - 1), Parent = BottomBar })
@@ -8102,7 +8070,6 @@ function Library:CreateConsole(Info)
         local inputH = Info.AllowInput and inputBarHeight or 0
         LogAreaHolder.Size = UDim2.new(1, 0, 1, -(logAreaTop + 1 + inputH + footerHeight))
     end
-
     Background:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateLayout)
     updateLayout()
 
@@ -8130,7 +8097,7 @@ function Library:CreateConsole(Info)
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
-            ZIndex = 2,
+            ZIndex = 4,
             Parent = LogFrame,
         })
 
@@ -8145,7 +8112,7 @@ function Library:CreateConsole(Info)
             TextWrapped = true,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Top,
-            ZIndex = 2,
+            ZIndex = 5,
             Parent = EntryHolder,
         })
 
@@ -8166,9 +8133,7 @@ function Library:CreateConsole(Info)
     function Console:Warn(text) return Console:Append("⚠ " .. text, Color3.fromRGB(255, 200, 50)) end
 
     function Console:Clear()
-        for _, v in ipairs(Console.Logs) do
-            if v.Holder then v.Holder:Destroy() end
-        end
+        for _, v in ipairs(Console.Logs) do if v.Holder then v.Holder:Destroy() end end
         Console.Logs = {}
         LogCount = 0
     end
@@ -8206,5 +8171,5 @@ Library:GiveSignal(Teams.ChildAdded:Connect(OnTeamChange))
 Library:GiveSignal(Teams.ChildRemoved:Connect(OnTeamChange))
 
 getgenv().Library = Library
-print('hello2')
+print('hello3')
 return Library
