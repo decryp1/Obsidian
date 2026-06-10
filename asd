@@ -7829,7 +7829,7 @@ function Library:CreateConsole(Info)
         Size = UDim2.fromOffset(24, 24),
         Text = "−",
         TextSize = 18,
-        TextColor3 = "FontColor",
+        TextColor3 = FontColor,
         Parent = TitleBar,
     })
 
