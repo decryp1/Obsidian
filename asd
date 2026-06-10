@@ -8042,6 +8042,19 @@ function Library:CreateConsole(Info)
         Console.Paused = not Console.Paused
         PauseEntry.Text = Console.Paused and "resume scroll" or "pause scroll"
     end)
+
+    -- Rainbow button
+    local RainbowEntry = makeSettingsEntry("rainbow test")
+    RainbowEntry.MouseButton1Click:Connect(function()
+        closeSettings()
+        for i = 1, 50 do
+            local hue = (i - 1) / 49
+            local color = Color3.fromHSV(hue, 1, 1)
+            Console:Append("rainbow " .. i, color)
+            task.wait(0.03)
+        end
+    end)
+
     DotsButton.MouseButton1Click:Connect(function()
         SettingsOpen = not SettingsOpen
         TweenService:Create(DotsButton, Library.TweenInfo, {TextTransparency=SettingsOpen and 0 or 0.4}):Play()
@@ -8098,10 +8111,28 @@ function Library:CreateConsole(Info)
             LogCount -= 1
         end
     end
+
+    local LastMessage = ""
+    local LastCount = 1
+
     function Console:Append(text, color)
         color = color or Library.Scheme.FontColor
         local stamp = TimestampEnabled and ("[" .. os.date("%H:%M:%S") .. "] ") or ""
         local displayText = stamp .. tostring(text)
+
+        if displayText == LastMessage then
+            LastCount += 1
+            local lastEntry = Console.Logs[#Console.Logs]
+            if lastEntry then
+                lastEntry.Label.Text = displayText .. " (x" .. LastCount .. ")"
+                scrollToBottom()
+                return lastEntry
+            end
+        else
+            LastMessage = displayText
+            LastCount = 1
+        end
+
         local EntryHolder = New("Frame", {
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 16),
@@ -8144,6 +8175,7 @@ function Library:CreateConsole(Info)
         scrollToBottom()
         return entry
     end
+
     function Console:Warn(text)
         return Console:Append("⚠ " .. tostring(text), Color3.fromRGB(255, 200, 50))
     end
@@ -8153,6 +8185,8 @@ function Library:CreateConsole(Info)
         end
         Console.Logs = {}
         LogCount = 0
+        LastMessage = ""
+        LastCount = 1
     end
     function Console:Remove(index)
         local entry = Console.Logs[index]
