@@ -7773,6 +7773,7 @@ function Library:CreateConsole(Info)
 	local SettingsOpen  = false
 	local SettingsTween = nil
 	local TimestampEnabled = Info.Timestamp
+	local ShowIndex     = false
 	local LastMessage   = ""
 	local LastCount     = 1
 	local TITLE_H    = 32
@@ -7785,7 +7786,7 @@ function Library:CreateConsole(Info)
 	local NotifDots      = {}
 	local OuterFrame = New("Frame", {
 		BackgroundColor3 = "OutlineColor",
-		ClipsDescendants = false,
+		ClipsDescendants = true,
 		Position         = Info.Position,
 		Size             = Info.Size,
 		ZIndex           = 10,
@@ -7825,7 +7826,9 @@ function Library:CreateConsole(Info)
 	})
 	Library:AddToRegistry(TitleBar, { BackgroundColor3 = "MainColor" })
 	local AccentLine = New("Frame", {
+		AnchorPoint      = Vector2.new(0, 1),
 		BackgroundColor3 = "AccentColor",
+		Position         = UDim2.fromScale(0, 1),
 		Size             = UDim2.new(1, 0, 0, 1),
 		ZIndex           = 12,
 		Parent           = TitleBar,
@@ -8102,6 +8105,32 @@ function Library:CreateConsole(Info)
 		TimestampEnabled = not TimestampEnabled
 		TimestampEntry.Text = TimestampEnabled and "✦ timestamps" or "○ timestamps"
 	end)
+	local IndexEntry = makeSettingsEntry(ShowIndex and "✦ show index" or "○ show index")
+	IndexEntry.MouseButton1Click:Connect(function()
+		ShowIndex = not ShowIndex
+		IndexEntry.Text = ShowIndex and "✦ show index" or "○ show index"
+	end)
+	local ExportEntry = makeSettingsEntry("↑ export logs")
+	ExportEntry.MouseButton1Click:Connect(function()
+		if setclipboard then
+			local lines = {}
+			for _, v in ipairs(Console.Logs) do table.insert(lines, v.Text) end
+			setclipboard(table.concat(lines, "\n"))
+			Console:Append("exported " .. #Console.Logs .. " logs to clipboard", Color3.fromRGB(100, 220, 150))
+		end
+	end)
+	local PauseEntry = makeSettingsEntry("⏸ pause scroll")
+	PauseEntry.MouseButton1Click:Connect(function()
+		Console.Paused = not Console.Paused
+		PauseEntry.Text = Console.Paused and "▶ resume scroll" or "⏸ pause scroll"
+	end)
+	local RainbowEntry = makeSettingsEntry("◈ rainbow test")
+	RainbowEntry.MouseButton1Click:Connect(function()
+		for i = 1, 50 do
+			Console:Append("rainbow " .. i, Color3.fromHSV((i - 1) / 49, 1, 1))
+			task.wait(0.03)
+		end
+	end)
 	if Info.AllowClear then
 		local ClearEntry = makeSettingsEntry("✕ clear logs")
 		ClearEntry.MouseButton1Click:Connect(function()
@@ -8190,7 +8219,7 @@ function Library:CreateConsole(Info)
 			AnchorPoint            = Vector2.new(1, 0.5),
 			AutomaticSize          = Enum.AutomaticSize.X,
 			BackgroundTransparency = 1,
-			Position               = UDim2.new(1, -4, 0, 0),
+			Position               = UDim2.new(1, -4, 0, (TITLE_H + 2) / 2),
 			Size                   = UDim2.new(0, 0, 0, DOT_SIZE),
 			ZIndex                 = 25,
 			Parent                 = OuterFrame,
@@ -8270,7 +8299,8 @@ function Library:CreateConsole(Info)
 	function Console:Append(text, color)
 		color = color or Library.Scheme.FontColor
 		local stamp       = TimestampEnabled and ("[" .. os.date("%H:%M:%S") .. "] ") or ""
-		local displayText = stamp .. tostring(text)
+		local indexStr    = ShowIndex and ("[" .. (#Console.Logs + 1) .. "] ") or ""
+		local displayText = stamp .. indexStr .. tostring(text)
 		if Console.Minimized then
 			addOrUpdateNotifDot(color)
 		end
