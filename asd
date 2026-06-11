@@ -7760,485 +7760,615 @@ function Library:CreateWindow(WindowInfo)
 end
 
 function Library:CreateConsole(Info)
-    Info = Info or {}
-    Info.Title = Info.Title or "Console"
-    Info.MaxLogs = Info.MaxLogs or 200
-    Info.AllowClear = typeof(Info.AllowClear) == "boolean" and Info.AllowClear or true
-    Info.AllowInput = typeof(Info.AllowInput) == "boolean" and Info.AllowInput or true
-    Info.Timestamp = typeof(Info.Timestamp) == "boolean" and Info.Timestamp or false
-    Info.Size = Info.Size or UDim2.fromOffset(480, 320)
-    Info.Position = Info.Position or UDim2.fromOffset(6, 6)
+	Info = Info or {}
+	Info.Title      = Info.Title    or "Console"
+	Info.MaxLogs    = Info.MaxLogs  or 200
+	Info.AllowClear = typeof(Info.AllowClear) == "boolean" and Info.AllowClear or true
+	Info.AllowInput = typeof(Info.AllowInput) == "boolean" and Info.AllowInput or true
+	Info.Timestamp  = typeof(Info.Timestamp)  == "boolean" and Info.Timestamp  or false
+	Info.Size       = Info.Size     or UDim2.fromOffset(480, 320)
+	Info.Position   = Info.Position or UDim2.fromOffset(6, 6)
+	local Console = { Logs = {}, Visible = true, Paused = false, Minimized = false }
+	local LogCount      = 0
+	local SettingsOpen  = false
+	local SettingsTween = nil
+	local TimestampEnabled = Info.Timestamp
+	local LastMessage   = ""
+	local LastCount     = 1
+	local TITLE_H    = 32
+	local FOOTER_H   = 20
+	local INPUT_H    = Info.AllowInput and 30 or 0
+	local SETTINGS_W = 160
+	local DOT_SIZE   = 14
+	local OriginalSize = Info.Size
+	local NotifContainer = nil
+	local NotifDots      = {}
+	local OuterFrame = New("Frame", {
+		BackgroundColor3 = "OutlineColor",
+		ClipsDescendants = false,
+		Position         = Info.Position,
+		Size             = Info.Size,
+		ZIndex           = 10,
+		Parent           = ScreenGui,
+	})
+	New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius), Parent = OuterFrame })
+	Library:AddToRegistry(OuterFrame, { BackgroundColor3 = "OutlineColor" })
+	local InnerFrame = New("Frame", {
+		BackgroundColor3 = "BackgroundColor",
+		ClipsDescendants = true,
+		Position         = UDim2.fromOffset(1, 1),
+		Size             = UDim2.new(1, -2, 1, -2),
+		ZIndex           = 10,
+		Parent           = OuterFrame,
+	})
+	New("UICorner", {
+		CornerRadius = UDim.new(0, math.max(0, Library.CornerRadius - 1)),
+		Parent       = InnerFrame,
+	})
+	Library:AddToRegistry(InnerFrame, { BackgroundColor3 = "BackgroundColor" })
+	local TitleBar = New("Frame", {
+		BackgroundColor3 = "MainColor",
+		Size             = UDim2.new(1, 0, 0, TITLE_H),
+		ZIndex           = 11,
+		Parent           = InnerFrame,
+	})
+	New("UICorner", {
+		CornerRadius = UDim.new(0, math.max(0, Library.CornerRadius - 1)),
+		Parent       = TitleBar,
+	})
+	New("Frame", {
+		BackgroundColor3 = "MainColor",
+		Position         = UDim2.new(0, 0, 1, -Library.CornerRadius),
+		Size             = UDim2.new(1, 0, 0, Library.CornerRadius),
+		ZIndex           = 11,
+		Parent           = TitleBar,
+	})
+	Library:AddToRegistry(TitleBar, { BackgroundColor3 = "MainColor" })
+	local AccentLine = New("Frame", {
+		BackgroundColor3 = "AccentColor",
+		Size             = UDim2.new(1, 0, 0, 1),
+		ZIndex           = 12,
+		Parent           = TitleBar,
+	})
+	Library:AddToRegistry(AccentLine, { BackgroundColor3 = "AccentColor" })
+	local TitleLabel = New("TextLabel", {
+		BackgroundTransparency = 1,
+		Size           = UDim2.new(1, -90, 1, 0),
+		Text           = Info.Title,
+		TextSize       = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex         = 12,
+		Parent         = TitleBar,
+	})
+	New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = TitleLabel })
+	local MinimizeBtn = New("TextButton", {
+		AnchorPoint            = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position               = UDim2.new(1, -30, 0.5, 0),
+		Size                   = UDim2.fromOffset(22, 22),
+		Text                   = "−",
+		TextSize               = 16,
+		TextTransparency       = 0.45,
+		ZIndex                 = 12,
+		Parent                 = TitleBar,
+	})
+	local DotsButton = New("TextButton", {
+		AnchorPoint            = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position               = UDim2.new(1, -6, 0.5, 0),
+		Size                   = UDim2.fromOffset(22, 22),
+		Text                   = "•••",
+		TextSize               = 11,
+		TextTransparency       = 0.45,
+		ZIndex                 = 12,
+		Parent                 = TitleBar,
+	})
+	Library:MakeLine(InnerFrame, {
+		Position = UDim2.fromOffset(0, TITLE_H),
+		Size     = UDim2.new(1, 0, 0, 1),
+		ZIndex   = 11,
+	})
 
-    local Console = { Logs = {}, Visible = true, Paused = false, Minimized = false }
-    local LogCount = 0
-    local SettingsOpen = false
-    local SettingsTween = nil
-    local MinW, MinH = 220, 160
-    local SETTINGS_W = 160
-    local TimestampEnabled = Info.Timestamp
-    local TITLE_H = 34
-    local FOOTER_H = 20
-    local INPUT_H = Info.AllowInput and 32 or 0
-    local OriginalSize = Info.Size
-    local NotificationContainer = nil
-
-    local Background = Library:MakeOutline(ScreenGui, Library.CornerRadius, 10)
-    Background.AutomaticSize = Enum.AutomaticSize.None
-    Background.Position = Info.Position
-    Background.Size = Info.Size
-    Background.Visible = true
-    Background.ClipsDescendants = true
-    Library:UpdateDPI(Background, {Position=false, Size=false})
-
-    local Holder = New("Frame", {
-        BackgroundColor3 = "BackgroundColor",
-        Position = UDim2.fromOffset(2, 2),
-        Size = UDim2.new(1, -4, 1, -4),
-        ClipsDescendants = true,
-        Parent = Background,
-    })
-    New("UICorner", {CornerRadius=UDim.new(0, Library.CornerRadius - 1), Parent=Holder})
-
-    local TitleBar = New("Frame", {
-        BackgroundColor3 = "MainColor",
-        Size = UDim2.new(1, 0, 0, TITLE_H),
-        Parent = Holder,
-    })
-    New("UICorner", {CornerRadius=UDim.new(0, Library.CornerRadius - 1), Parent=TitleBar})
-    New("Frame", {
-        BackgroundColor3 = "MainColor",
-        Position = UDim2.new(0, 0, 1, -Library.CornerRadius),
-        Size = UDim2.new(1, 0, 0, Library.CornerRadius),
-        Parent = TitleBar,
-    })
-
-    local TitleLabel = New("TextLabel", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -100, 1, 0),
-        Text = Info.Title,
-        TextSize = 15,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = TitleBar,
-    })
-    New("UIPadding", {PaddingLeft=UDim.new(0, 12), Parent=TitleLabel})
-
-    local MinimizeBtn = New("TextButton", {
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(1, -68, 0.5, 0),
-        Size = UDim2.fromOffset(24, 24),
-        Text = "−",
-        TextSize = 18,
-        TextColor3 = FontColor,
-        Parent = TitleBar,
-    })
-
-    local DotsButton = New("TextButton", {
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(1, -8, 0.5, 0),
-        Size = UDim2.fromOffset(24, 24),
-        Text = "•••",
-        TextSize = 14,
-        TextTransparency = 0.4,
-        Parent = TitleBar,
-    })
-
-    Library:MakeLine(Holder, { Position = UDim2.fromOffset(0, TITLE_H), Size = UDim2.new(1, 0, 0, 1) })
-
-    local LogAreaHolder = New("Frame", {
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(0, TITLE_H + 1),
-        Size = UDim2.new(1, 0, 1, -(TITLE_H + 1 + INPUT_H + FOOTER_H)),
-        ClipsDescendants = true,
-        Parent = Holder,
-    })
-
-    local LogFrame = New("ScrollingFrame", {
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        BackgroundTransparency = 1,
-        CanvasSize = UDim2.fromScale(0, 0),
-        ScrollBarImageColor3 = "OutlineColor",
-        ScrollBarThickness = 2,
-        Size = UDim2.fromScale(1, 1),
-        Parent = LogAreaHolder,
-    })
-    New("UIListLayout", {Padding=UDim.new(0, 3), Parent=LogFrame})
-    New("UIPadding", {
-        PaddingTop=UDim.new(0, 6), PaddingBottom=UDim.new(0, 6),
-        PaddingLeft=UDim.new(0, 8), PaddingRight=UDim.new(0, 10),
-        Parent=LogFrame,
-    })
-
-    if Info.AllowInput then
-        Library:MakeLine(Holder, {
-            AnchorPoint = Vector2.new(0, 1),
-            Position = UDim2.new(0, 0, 1, -(FOOTER_H + INPUT_H)),
-            Size = UDim2.new(1, 0, 0, 1),
-        })
-        local InputBar = New("Frame", {
-            AnchorPoint = Vector2.new(0, 1),
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0, 0, 1, -FOOTER_H),
-            Size = UDim2.new(1, 0, 0, INPUT_H),
-            Parent = Holder,
-        })
-        local InputBox = New("TextBox", {
-            BackgroundTransparency = 1,
-            ClearTextOnFocus = true,
-            PlaceholderText = "> execute...",
-            Size = UDim2.new(1, -52, 1, 0),
-            Text = "",
-            TextSize = 13,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = InputBar,
-        })
-        New("UIPadding", {PaddingLeft=UDim.new(0, 10), Parent=InputBox})
-        local RunButton = New("TextButton", {
-            AnchorPoint = Vector2.new(1, 0.5),
-            BackgroundColor3 = "AccentColor",
-            Position = UDim2.new(1, -6, 0.5, 0),
-            Size = UDim2.fromOffset(42, 20),
-            Text = "run",
-            TextSize = 13,
-            Parent = InputBar,
-        })
-        New("UICorner", {CornerRadius=UDim.new(0, Library.CornerRadius - 1), Parent=RunButton})
-
-        RunButton.MouseEnter:Connect(function()
-            TweenService:Create(RunButton, Library.TweenInfo, {BackgroundColor3 = Library:GetBetterColor(Library.Scheme.AccentColor, 6)}):Play()
-        end)
-        RunButton.MouseLeave:Connect(function()
-            TweenService:Create(RunButton, Library.TweenInfo, {BackgroundColor3 = Library.Scheme.AccentColor}):Play()
-        end)
-
-        local function runInput()
-            local src = InputBox.Text
-            if src == "" then return end
-            InputBox.Text = ""
-            Console:Append("> " .. src, Color3.fromRGB(160, 160, 180))
-            local fn, err = loadstring(src)
-            if fn then
-                local ok, res = pcall(fn)
-                if not ok then Console:Append(tostring(res), Color3.fromRGB(255, 80, 80)) end
-            else
-                Console:Append(tostring(err), Color3.fromRGB(255, 180, 50))
-            end
-        end
-
-        RunButton.MouseButton1Click:Connect(runInput)
-        InputBox.FocusLost:Connect(function(enter) if enter then runInput() end end)
-    end
-
-    Library:MakeLine(Holder, {
-        AnchorPoint = Vector2.new(0, 1),
-        Position = UDim2.new(0, 0, 1, -FOOTER_H),
-        Size = UDim2.new(1, 0, 0, 1),
-    })
-
-    local BottomBar = New("Frame", {
-        AnchorPoint = Vector2.new(0, 1),
-        BackgroundColor3 = function() return Library:GetBetterColor(Library.Scheme.BackgroundColor, 4) end,
-        Position = UDim2.fromScale(0, 1),
-        Size = UDim2.new(1, 0, 0, FOOTER_H),
-        Parent = Holder,
-    })
-    do
-        local Cover = Library:MakeCover(BottomBar, "Top")
-        Library:AddToRegistry(Cover, { BackgroundColor3 = function() return Library:GetBetterColor(Library.Scheme.BackgroundColor, 4) end })
-    end
-    New("UICorner", {CornerRadius=UDim.new(0, Library.CornerRadius - 1), Parent=BottomBar})
-
-    local ResizeBtn = New("TextButton", {
-        AnchorPoint = Vector2.new(1, 1),
-        BackgroundTransparency = 1,
-        Position = UDim2.fromScale(1, 1),
-        Size = UDim2.fromOffset(16, 16),
-        Text = "",
-        Parent = BottomBar,
-    })
-    if ResizeIcon then
-        New("ImageLabel", {
-            Image = ResizeIcon.Url,
-            ImageColor3 = "FontColor",
-            ImageRectOffset = ResizeIcon.ImageRectOffset,
-            ImageRectSize = ResizeIcon.ImageRectSize,
-            ImageTransparency = 0.5,
-            Size = UDim2.fromScale(1, 1),
-            Parent = ResizeBtn,
-        })
-    end
-
-    local SettingsPanel = New("Frame", {
-        BackgroundColor3 = "MainColor",
-        Position = UDim2.fromOffset(-SETTINGS_W, TITLE_H + 1),
-        Size = UDim2.new(0, SETTINGS_W, 1, -(TITLE_H + 1 + FOOTER_H)),
-        ZIndex = 15,
-        ClipsDescendants = true,
-        Parent = Holder,
-    })
-    New("UICorner", {CornerRadius=UDim.new(0, Library.CornerRadius - 1), Parent=SettingsPanel})
-    New("Frame", {
-        AnchorPoint = Vector2.new(1, 0),
-        BackgroundColor3 = "MainColor",
-        Position = UDim2.fromScale(1, 0),
-        Size = UDim2.new(0, Library.CornerRadius, 1, 0),
-        ZIndex = 15,
-        Parent = SettingsPanel,
-    })
-    New("Frame", {
-        AnchorPoint = Vector2.new(1, 0),
-        BackgroundColor3 = "OutlineColor",
-        Position = UDim2.fromScale(1, 0),
-        Size = UDim2.new(0, 1, 1, 0),
-        ZIndex = 16,
-        Parent = SettingsPanel,
-    })
-
-    local SettingsList = New("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        ZIndex = 16,
-        Parent = SettingsPanel,
-    })
-    New("UIListLayout", {Padding=UDim.new(0, 3), Parent=SettingsList})
-    New("UIPadding", {
-        PaddingTop=UDim.new(0, 8), PaddingLeft=UDim.new(0, 8),
-        PaddingRight=UDim.new(0, 8), PaddingBottom=UDim.new(0, 8),
-        Parent=SettingsList,
-    })
-
-    local function makeSettingsEntry(label)
-        local btn = New("TextButton", {
-            BackgroundColor3 = "MainColor",
-            BackgroundTransparency = 0,
-            Size = UDim2.new(1, 0, 0, 26),
-            Text = label,
-            TextSize = 13,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 17,
-            Parent = SettingsList,
-        })
-        New("UIStroke", {Color = "OutlineColor", Parent = btn})
-        New("UIPadding", {PaddingLeft=UDim.new(0, 8), Parent=btn})
-        btn.MouseEnter:Connect(function() TweenService:Create(btn, Library.TweenInfo, {BackgroundTransparency=0.2}):Play() end)
-        btn.MouseLeave:Connect(function() TweenService:Create(btn, Library.TweenInfo, {BackgroundTransparency=0}):Play() end)
-        return btn
-    end
-
-    local TimestampEntry = makeSettingsEntry(TimestampEnabled and "timestamps: on" or "timestamps: off")
-    TimestampEntry.MouseButton1Click:Connect(function()
-        TimestampEnabled = not TimestampEnabled
-        TimestampEntry.Text = TimestampEnabled and "timestamps: on" or "timestamps: off"
-    end)
-
-    local RainbowEntry = makeSettingsEntry("rainbow test")
-    RainbowEntry.MouseButton1Click:Connect(function()
-        for i = 1, 50 do
-            local hue = (i - 1) / 49
-            local color = Color3.fromHSV(hue, 1, 1)
-            Console:Append("rainbow " .. i, color)
-            task.wait(0.03)
-        end
-    end)
-
-    DotsButton.MouseButton1Click:Connect(function()
-        SettingsOpen = not SettingsOpen
-        TweenService:Create(DotsButton, Library.TweenInfo, {TextTransparency=SettingsOpen and 0 or 0.4}):Play()
-        if SettingsTween then SettingsTween:Cancel() end
-        SettingsTween = TweenService:Create(SettingsPanel,
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {Position = SettingsOpen and UDim2.fromOffset(0, TITLE_H + 1) or UDim2.fromOffset(-SETTINGS_W, TITLE_H + 1)}
-        )
-        SettingsTween:Play()
-    end)
-
-    Library:MakeDraggable(Background, TitleBar, true)
-    Library:MakeResizable(Background, ResizeBtn)
-
-    local function updateLayout()
-        local inputH = Info.AllowInput and INPUT_H or 0
-        LogAreaHolder.Size = UDim2.new(1, 0, 1, -(TITLE_H + 1 + inputH + FOOTER_H))
-    end
-    Background:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateLayout)
-    updateLayout()
-
-    local function scrollToBottom()
-        if Console.Paused then return end
-        task.defer(function()
-            LogFrame.CanvasPosition = Vector2.new(0, math.huge)
-        end)
-    end
-
-    local function trimLogs()
-        while LogCount > Info.MaxLogs do
-            local oldest = table.remove(Console.Logs, 1)
-            if oldest and oldest.Holder then oldest.Holder:Destroy() end
-            LogCount -= 1
-        end
-    end
-
-    local LastMessage = ""
-    local LastCount = 1
-
-    local function CreateNotificationDot(color)
-        if not Console.Minimized then return end
-        if not NotificationContainer then
-            NotificationContainer = New("Frame", {
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 0, 24),
-                Position = UDim2.new(1, -10, 0, 6),
-                AnchorPoint = Vector2.new(1, 0),
-                ZIndex = 20,
-                Parent = Background,
-            })
-            New("UIListLayout", {FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 4), HorizontalAlignment = Enum.HorizontalAlignment.Right, Parent = NotificationContainer})
-        end
-
-        local dot = New("Frame", {
-            BackgroundColor3 = color,
-            Size = UDim2.fromOffset(20, 20),
-            ZIndex = 21,
-            Parent = NotificationContainer,
-        })
-        New("UICorner", {CornerRadius = UDim.new(1, 0), Parent = dot})
-
-        New("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.fromScale(1, 1),
-            Text = "1",
-            TextColor3 = Color3.new(1,1,1),
-            TextSize = 11,
-            ZIndex = 22,
-            Parent = dot,
-        })
-    end
-
-    function Console:Append(text, color)
-        color = color or Library.Scheme.FontColor
-        local stamp = TimestampEnabled and ("[" .. os.date("%H:%M:%S") .. "] ") or ""
-        local displayText = stamp .. tostring(text)
-
-        if Console.Minimized then
-            CreateNotificationDot(color)
-        end
-
-        if displayText == LastMessage then
-            LastCount += 1
-            local lastEntry = Console.Logs[#Console.Logs]
-            if lastEntry then
-                lastEntry.Label.Text = displayText .. " (x" .. LastCount .. ")"
-                scrollToBottom()
-                return lastEntry
-            end
-        else
-            LastMessage = displayText
-            LastCount = 1
-        end
-
-        local EntryHolder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 16),
-            Parent = LogFrame,
-        })
-        local EntryLabel = New("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 1, 0),
-            Text = displayText,
-            TextColor3 = color,
-            TextSize = 13,
-            TextTransparency = 1,
-            TextWrapped = true,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            TextYAlignment = Enum.TextYAlignment.Top,
-            Parent = EntryHolder,
-        })
-        EntryLabel.Position = UDim2.fromOffset(-8, 0)
-        TweenService:Create(EntryLabel, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            TextTransparency = 0,
-            Position = UDim2.fromOffset(0, 0),
-        }):Play()
-
-        task.spawn(function()
-            task.wait()
-            if not EntryHolder.Parent then return end
-            local w = math.max(80, LogFrame.AbsoluteSize.X - 18)
-            local ok, h = pcall(function()
-                local _, height = Library:GetTextBounds(displayText, Library.Scheme.Font, 13, w)
-                return height
-            end)
-            if ok and h and h > 0 then
-                EntryHolder.Size = UDim2.new(1, 0, 0, math.max(16, h + 2))
-            end
-            scrollToBottom()
-        end)
-
-        local entry = {Text=displayText, Color=color, Holder=EntryHolder, Label=EntryLabel}
-        table.insert(Console.Logs, entry)
-        LogCount += 1
-        trimLogs()
-        scrollToBottom()
-        return entry
-    end
-
-    function Console:Warn(text)
-        return Console:Append("⚠ " .. tostring(text), Color3.fromRGB(255, 200, 50))
-    end
-
-    function Console:Clear()
-        for _, v in ipairs(Console.Logs) do
-            if v.Holder then v.Holder:Destroy() end
-        end
-        Console.Logs = {}
-        LogCount = 0
-        LastMessage = ""
-        LastCount = 1
-        if NotificationContainer then
-            NotificationContainer:Destroy()
-            NotificationContainer = nil
-        end
-    end
-
-    MinimizeBtn.MouseButton1Click:Connect(function()
-        Console.Minimized = not Console.Minimized
-        if Console.Minimized then
-            TweenService:Create(Background, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.fromOffset(Background.AbsoluteSize.X, TITLE_H)
-            }):Play()
-            Holder.ClipsDescendants = true
-        else
-            TweenService:Create(Background, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = OriginalSize
-            }):Play()
-            Holder.ClipsDescendants = false
-            if NotificationContainer then
-                NotificationContainer:Destroy()
-                NotificationContainer = nil
-            end
-        end
-    end)
-
-    function Console:SetVisible(visible)
-        Console.Visible = visible
-        Background.Visible = visible
-    end
-
-    function Console:SetPaused(paused)
-        Console.Paused = paused
-        if not paused then scrollToBottom() end
-    end
-
-    function Console:SetTitle(title)
-        TitleLabel.Text = title
-    end
-
-    function Console:Export()
-        local lines = {}
-        for _, v in ipairs(Console.Logs) do table.insert(lines, v.Text) end
-        return table.concat(lines, "\n")
-    end
-
-    return Console
+	local inputTotal = Info.AllowInput and (INPUT_H + 1) or 0
+	local LogAreaHolder = New("Frame", {
+		BackgroundTransparency = 1,
+		ClipsDescendants       = true,
+		Position               = UDim2.fromOffset(0, TITLE_H + 1),
+		Size                   = UDim2.new(1, 0, 1, -(TITLE_H + 1 + inputTotal + FOOTER_H + 1)),
+		ZIndex                 = 11,
+		Parent                 = InnerFrame,
+	})
+	local LogFrame = New("ScrollingFrame", {
+		AutomaticCanvasSize    = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		CanvasSize             = UDim2.fromScale(0, 0),
+		ScrollBarImageColor3   = "OutlineColor",
+		ScrollBarThickness     = 2,
+		Size                   = UDim2.fromScale(1, 1),
+		ZIndex                 = 11,
+		Parent                 = LogAreaHolder,
+	})
+	New("UIListLayout", { Padding = UDim.new(0, 2), Parent = LogFrame })
+	New("UIPadding", {
+		PaddingTop    = UDim.new(0, 6),
+		PaddingBottom = UDim.new(0, 6),
+		PaddingLeft   = UDim.new(0, 8),
+		PaddingRight  = UDim.new(0, 8),
+		Parent        = LogFrame,
+	})
+	local InputBar = nil
+	if Info.AllowInput then
+		Library:MakeLine(InnerFrame, {
+			AnchorPoint = Vector2.new(0, 1),
+			Position    = UDim2.new(0, 0, 1, -(FOOTER_H + INPUT_H + 1)),
+			Size        = UDim2.new(1, 0, 0, 1),
+			ZIndex      = 11,
+		})
+		InputBar = New("Frame", {
+			AnchorPoint            = Vector2.new(0, 1),
+			BackgroundTransparency = 1,
+			Position               = UDim2.new(0, 0, 1, -(FOOTER_H + 1)),
+			Size                   = UDim2.new(1, 0, 0, INPUT_H),
+			ZIndex                 = 11,
+			Parent                 = InnerFrame,
+		})
+		local InputBox = New("TextBox", {
+			BackgroundTransparency = 1,
+			ClearTextOnFocus       = true,
+			PlaceholderText        = "> execute...",
+			Size                   = UDim2.new(1, -52, 1, 0),
+			Text                   = "",
+			TextSize               = 12,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+			ZIndex                 = 12,
+			Parent                 = InputBar,
+		})
+		New("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = InputBox })
+		local RunButton = New("TextButton", {
+			AnchorPoint      = Vector2.new(1, 0.5),
+			BackgroundColor3 = "AccentColor",
+			Position         = UDim2.new(1, -6, 0.5, 0),
+			Size             = UDim2.fromOffset(40, 18),
+			Text             = "run",
+			TextSize         = 12,
+			ZIndex           = 12,
+			Parent           = InputBar,
+		})
+		New("UICorner", {
+			CornerRadius = UDim.new(0, math.max(0, Library.CornerRadius - 1)),
+			Parent       = RunButton,
+		})
+		Library:AddToRegistry(RunButton, { BackgroundColor3 = "AccentColor" })
+		RunButton.MouseEnter:Connect(function()
+			TweenService:Create(RunButton, Library.TweenInfo, {
+				BackgroundColor3 = Library:GetBetterColor(Library.Scheme.AccentColor, 6),
+			}):Play()
+		end)
+		RunButton.MouseLeave:Connect(function()
+			TweenService:Create(RunButton, Library.TweenInfo, {
+				BackgroundColor3 = Library.Scheme.AccentColor,
+			}):Play()
+		end)
+		local function runInput()
+			local src = InputBox.Text
+			if src == "" then return end
+			InputBox.Text = ""
+			Console:Append("> " .. src, Color3.fromRGB(160, 160, 185))
+			local fn, err = loadstring(src)
+			if fn then
+				local ok, res = pcall(fn)
+				if not ok then
+					Console:Append(tostring(res), Color3.fromRGB(255, 80, 80))
+				end
+			else
+				Console:Append(tostring(err), Color3.fromRGB(255, 185, 50))
+			end
+		end
+		RunButton.MouseButton1Click:Connect(runInput)
+		InputBox.FocusLost:Connect(function(enter)
+			if enter then runInput() end
+		end)
+	end
+	Library:MakeLine(InnerFrame, {
+		AnchorPoint = Vector2.new(0, 1),
+		Position    = UDim2.new(0, 0, 1, -FOOTER_H),
+		Size        = UDim2.new(1, 0, 0, 1),
+		ZIndex      = 11,
+	})
+	local BottomBar = New("Frame", {
+		AnchorPoint      = Vector2.new(0, 1),
+		BackgroundColor3 = function() return Library:GetBetterColor(Library.Scheme.BackgroundColor, 3) end,
+		Position         = UDim2.fromScale(0, 1),
+		Size             = UDim2.new(1, 0, 0, FOOTER_H),
+		ZIndex           = 11,
+		Parent           = InnerFrame,
+	})
+	New("UICorner", {
+		CornerRadius = UDim.new(0, math.max(0, Library.CornerRadius - 1)),
+		Parent       = BottomBar,
+	})
+	Library:AddToRegistry(BottomBar, {
+		BackgroundColor3 = function() return Library:GetBetterColor(Library.Scheme.BackgroundColor, 3) end,
+	})
+	do
+		local Cover = Library:MakeCover(BottomBar, "Top")
+		Library:AddToRegistry(Cover, {
+			BackgroundColor3 = function() return Library:GetBetterColor(Library.Scheme.BackgroundColor, 3) end,
+		})
+	end
+	local LogCountLabel = New("TextLabel", {
+		BackgroundTransparency = 1,
+		Position               = UDim2.fromOffset(8, 0),
+		Size                   = UDim2.new(1, -24, 1, 0),
+		Text                   = "0 lines",
+		TextSize               = 10,
+		TextTransparency       = 0.45,
+		TextXAlignment         = Enum.TextXAlignment.Left,
+		ZIndex                 = 12,
+		Parent                 = BottomBar,
+	})
+	local ResizeBtn = New("TextButton", {
+		AnchorPoint            = Vector2.new(1, 1),
+		BackgroundTransparency = 1,
+		Position               = UDim2.fromScale(1, 1),
+		Size                   = UDim2.fromOffset(16, 16),
+		Text                   = "",
+		ZIndex                 = 12,
+		Parent                 = BottomBar,
+	})
+	if ResizeIcon then
+		New("ImageLabel", {
+			Image             = ResizeIcon.Url,
+			ImageColor3       = "FontColor",
+			ImageRectOffset   = ResizeIcon.ImageRectOffset,
+			ImageRectSize     = ResizeIcon.ImageRectSize,
+			ImageTransparency = 0.6,
+			Size              = UDim2.fromScale(1, 1),
+			ZIndex            = 12,
+			Parent            = ResizeBtn,
+		})
+	end
+	local SettingsPanel = New("Frame", {
+		BackgroundColor3 = "MainColor",
+		ClipsDescendants = true,
+		Position         = UDim2.fromOffset(-SETTINGS_W, TITLE_H + 1),
+		Size             = UDim2.new(0, SETTINGS_W, 1, -(TITLE_H + 1 + FOOTER_H)),
+		ZIndex           = 15,
+		Parent           = InnerFrame,
+	})
+	New("UICorner", {
+		CornerRadius = UDim.new(0, math.max(0, Library.CornerRadius - 1)),
+		Parent       = SettingsPanel,
+	})
+	New("Frame", {
+		AnchorPoint      = Vector2.new(1, 0),
+		BackgroundColor3 = "MainColor",
+		Position         = UDim2.fromScale(1, 0),
+		Size             = UDim2.new(0, Library.CornerRadius, 1, 0),
+		ZIndex           = 15,
+		Parent           = SettingsPanel,
+	})
+	New("Frame", {
+		AnchorPoint      = Vector2.new(1, 0),
+		BackgroundColor3 = "OutlineColor",
+		Position         = UDim2.fromScale(1, 0),
+		Size             = UDim2.new(0, 1, 1, 0),
+		ZIndex           = 16,
+		Parent           = SettingsPanel,
+	})
+	Library:AddToRegistry(SettingsPanel, { BackgroundColor3 = "MainColor" })
+	local SettingsList = New("Frame", {
+		BackgroundTransparency = 1,
+		Size                   = UDim2.new(1, 0, 1, 0),
+		ZIndex                 = 16,
+		Parent                 = SettingsPanel,
+	})
+	New("UIListLayout", { Padding = UDim.new(0, 3), Parent = SettingsList })
+	New("UIPadding", {
+		PaddingTop    = UDim.new(0, 8),
+		PaddingLeft   = UDim.new(0, 8),
+		PaddingRight  = UDim.new(0, 8),
+		PaddingBottom = UDim.new(0, 8),
+		Parent        = SettingsList,
+	})
+	local function makeSettingsEntry(label)
+		local btn = New("TextButton", {
+			BackgroundColor3       = "MainColor",
+			BackgroundTransparency = 0.4,
+			Size                   = UDim2.new(1, 0, 0, 24),
+			Text                   = label,
+			TextSize               = 12,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+			ZIndex                 = 17,
+			Parent                 = SettingsList,
+		})
+		New("UICorner", {
+			CornerRadius = UDim.new(0, math.max(0, Library.CornerRadius - 1)),
+			Parent       = btn,
+		})
+		New("UIStroke", { Color = "OutlineColor", Thickness = 1, Parent = btn })
+		New("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = btn })
+		Library:AddToRegistry(btn, { BackgroundColor3 = "MainColor", TextColor3 = "FontColor" })
+		btn.MouseEnter:Connect(function()
+			TweenService:Create(btn, Library.TweenInfo, { BackgroundTransparency = 0.1 }):Play()
+		end)
+		btn.MouseLeave:Connect(function()
+			TweenService:Create(btn, Library.TweenInfo, { BackgroundTransparency = 0.4 }):Play()
+		end)
+		return btn
+	end
+	local TimestampEntry = makeSettingsEntry(TimestampEnabled and "✦ timestamps" or "○ timestamps")
+	TimestampEntry.MouseButton1Click:Connect(function()
+		TimestampEnabled = not TimestampEnabled
+		TimestampEntry.Text = TimestampEnabled and "✦ timestamps" or "○ timestamps"
+	end)
+	if Info.AllowClear then
+		local ClearEntry = makeSettingsEntry("✕ clear logs")
+		ClearEntry.MouseButton1Click:Connect(function()
+			Console:Clear()
+			SettingsOpen = false
+			DotsButton.TextTransparency = 0.45
+			if SettingsTween then SettingsTween:Cancel() end
+			SettingsTween = TweenService:Create(SettingsPanel,
+				TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{ Position = UDim2.fromOffset(-SETTINGS_W, TITLE_H + 1) }
+			)
+			SettingsTween:Play()
+		end)
+	end
+	DotsButton.MouseButton1Click:Connect(function()
+		SettingsOpen = not SettingsOpen
+		TweenService:Create(DotsButton, Library.TweenInfo, {
+			TextTransparency = SettingsOpen and 0 or 0.45,
+		}):Play()
+		if SettingsTween then SettingsTween:Cancel() end
+		SettingsTween = TweenService:Create(SettingsPanel,
+			TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Position = SettingsOpen
+					and UDim2.fromOffset(0, TITLE_H + 1)
+					or  UDim2.fromOffset(-SETTINGS_W, TITLE_H + 1),
+			}
+		)
+		SettingsTween:Play()
+	end)
+	MinimizeBtn.MouseEnter:Connect(function()
+		TweenService:Create(MinimizeBtn, Library.TweenInfo, { TextTransparency = 0 }):Play()
+	end)
+	MinimizeBtn.MouseLeave:Connect(function()
+		TweenService:Create(MinimizeBtn, Library.TweenInfo, { TextTransparency = 0.45 }):Play()
+	end)
+	DotsButton.MouseEnter:Connect(function()
+		if not SettingsOpen then
+			TweenService:Create(DotsButton, Library.TweenInfo, { TextTransparency = 0.2 }):Play()
+		end
+	end)
+	DotsButton.MouseLeave:Connect(function()
+		if not SettingsOpen then
+			TweenService:Create(DotsButton, Library.TweenInfo, { TextTransparency = 0.45 }):Play()
+		end
+	end)
+	Library:MakeDraggable(OuterFrame, TitleBar, true)
+	Library:MakeResizable(OuterFrame, ResizeBtn)
+	local function updateLayout()
+		if not Console.Minimized then
+			OriginalSize = UDim2.fromOffset(OuterFrame.AbsoluteSize.X, OuterFrame.AbsoluteSize.Y)
+		end
+		LogAreaHolder.Size = UDim2.new(1, 0, 1, -(TITLE_H + 1 + inputTotal + FOOTER_H + 1))
+	end
+	OuterFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateLayout)
+	updateLayout()
+	local function scrollToBottom()
+		if Console.Paused then return end
+		task.defer(function()
+			LogFrame.CanvasPosition = Vector2.new(0, math.huge)
+		end)
+	end
+	local function updateLogCount()
+		LogCountLabel.Text = LogCount .. (LogCount == 1 and " line" or " lines")
+	end
+	local function trimLogs()
+		while LogCount > Info.MaxLogs do
+			local oldest = table.remove(Console.Logs, 1)
+			if oldest and oldest.Holder then
+				oldest.Holder:Destroy()
+			end
+			LogCount -= 1
+		end
+	end
+	local function colorKey(c)
+		return string.format("%d_%d_%d",
+			math.floor(c.R * 255 + 0.5),
+			math.floor(c.G * 255 + 0.5),
+			math.floor(c.B * 255 + 0.5)
+		)
+	end
+	local function ensureNotifContainer()
+		if NotifContainer and NotifContainer.Parent then return end
+		NotifDots = {}
+		NotifContainer = New("Frame", {
+			AnchorPoint            = Vector2.new(1, 0.5),
+			AutomaticSize          = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			Position               = UDim2.new(1, -4, 0, 0),
+			Size                   = UDim2.new(0, 0, 0, DOT_SIZE),
+			ZIndex                 = 25,
+			Parent                 = OuterFrame,
+		})
+		New("UIListLayout", {
+			FillDirection       = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			VerticalAlignment   = Enum.VerticalAlignment.Center,
+			Padding             = UDim.new(0, 3),
+			Parent              = NotifContainer,
+		})
+	end
+	local function addOrUpdateNotifDot(color)
+		if not Console.Minimized then return end
+		ensureNotifContainer()
+		local key = colorKey(color)
+		if NotifDots[key] then
+			local data = NotifDots[key]
+			data.Count           += 1
+			data.Label.Text       = tostring(data.Count)
+		else
+			local dot = New("Frame", {
+				BackgroundColor3 = color,
+				Size             = UDim2.fromOffset(DOT_SIZE, DOT_SIZE),
+				ZIndex           = 26,
+				Parent           = NotifContainer,
+			})
+			New("UICorner", { CornerRadius = UDim.new(1, 0), Parent = dot })
+			New("UIStroke", {
+				Color        = Color3.new(0, 0, 0),
+				Transparency = 0.55,
+				Thickness    = 1,
+				Parent       = dot,
+			})
+			local label = Instance.new("TextLabel")
+			label.BackgroundTransparency = 1
+			label.Size                   = UDim2.fromScale(1, 1)
+			label.Text                   = "1"
+			label.TextColor3             = Color3.new(1, 1, 1)
+			label.TextSize               = 8
+			label.FontFace               = Font.fromEnum(Enum.Font.GothamBold)
+			label.ZIndex                 = 27
+			label.BorderSizePixel        = 0
+			label.Parent                 = dot
+			NotifDots[key] = { Dot = dot, Label = label, Count = 1 }
+		end
+	end
+	local function clearNotifDots()
+		if NotifContainer then
+			NotifContainer:Destroy()
+			NotifContainer = nil
+		end
+		NotifDots = {}
+	end
+	MinimizeBtn.MouseButton1Click:Connect(function()
+		Console.Minimized = not Console.Minimized
+		if Console.Minimized then
+			ResizeBtn.Visible = false
+			TweenService:Create(OuterFrame,
+				TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{ Size = UDim2.fromOffset(OuterFrame.AbsoluteSize.X, TITLE_H + 2) }
+			):Play()
+		else
+			clearNotifDots()
+			TweenService:Create(OuterFrame,
+				TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{ Size = OriginalSize }
+			):Play()
+			task.delay(0.23, function()
+				if not Console.Minimized then
+					ResizeBtn.Visible = true
+					scrollToBottom()
+				end
+			end)
+		end
+	end)
+	function Console:Append(text, color)
+		color = color or Library.Scheme.FontColor
+		local stamp       = TimestampEnabled and ("[" .. os.date("%H:%M:%S") .. "] ") or ""
+		local displayText = stamp .. tostring(text)
+		if Console.Minimized then
+			addOrUpdateNotifDot(color)
+		end
+		if displayText == LastMessage then
+			LastCount += 1
+			local lastEntry = Console.Logs[#Console.Logs]
+			if lastEntry then
+				lastEntry.Label.Text = displayText .. " ×" .. LastCount
+				scrollToBottom()
+				return lastEntry
+			end
+		else
+			LastMessage = displayText
+			LastCount   = 1
+		end
+		local EntryHolder = New("Frame", {
+			BackgroundTransparency = 1,
+			Size                   = UDim2.new(1, 0, 0, 15),
+			ZIndex                 = 12,
+			Parent                 = LogFrame,
+		})
+		local EntryLabel = Instance.new("TextLabel")
+		EntryLabel.BackgroundTransparency = 1
+		EntryLabel.Size                   = UDim2.new(1, 0, 1, 0)
+		EntryLabel.Text                   = displayText
+		EntryLabel.TextColor3             = color
+		EntryLabel.TextSize               = 12
+		EntryLabel.FontFace               = Library.Scheme.Font
+		EntryLabel.TextTransparency       = 1
+		EntryLabel.TextWrapped            = true
+		EntryLabel.TextXAlignment         = Enum.TextXAlignment.Left
+		EntryLabel.TextYAlignment         = Enum.TextYAlignment.Top
+		EntryLabel.RichText               = true
+		EntryLabel.BorderSizePixel        = 0
+		EntryLabel.ZIndex                 = 12
+		EntryLabel.Parent                 = EntryHolder
+		EntryLabel.Position = UDim2.fromOffset(-5, 0)
+		TweenService:Create(EntryLabel,
+			TweenInfo.new(0.13, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ TextTransparency = 0, Position = UDim2.fromOffset(0, 0) }
+		):Play()
+		task.spawn(function()
+			task.wait()
+			if not EntryHolder.Parent then return end
+			local w = math.max(80, LogFrame.AbsoluteSize.X - 18)
+			local ok, h = pcall(function()
+				local _, height = Library:GetTextBounds(displayText, Library.Scheme.Font, 12, w)
+				return height
+			end)
+			if ok and h and h > 0 then
+				EntryHolder.Size = UDim2.new(1, 0, 0, math.max(15, h + 2))
+			end
+			scrollToBottom()
+		end)
+		local entry = { Text = displayText, Color = color, Holder = EntryHolder, Label = EntryLabel }
+		table.insert(Console.Logs, entry)
+		LogCount += 1
+		trimLogs()
+		updateLogCount()
+		scrollToBottom()
+		return entry
+	end
+	function Console:Warn(text)
+		return Console:Append("⚠ " .. tostring(text), Color3.fromRGB(255, 200, 50))
+	end
+	function Console:Error(text)
+		return Console:Append("✕ " .. tostring(text), Color3.fromRGB(255, 75, 75))
+	end
+	function Console:Clear()
+		for _, v in ipairs(Console.Logs) do
+			if v.Holder then v.Holder:Destroy() end
+		end
+		Console.Logs = {}
+		LogCount     = 0
+		LastMessage  = ""
+		LastCount    = 1
+		updateLogCount()
+		clearNotifDots()
+	end
+	function Console:SetVisible(visible)
+		Console.Visible    = visible
+		OuterFrame.Visible = visible
+	end
+	function Console:SetPaused(paused)
+		Console.Paused = paused
+		if not paused then scrollToBottom() end
+	end
+	function Console:SetTitle(title)
+		TitleLabel.Text = title
+	end
+	function Console:Export()
+		local lines = {}
+		for _, v in ipairs(Console.Logs) do
+			table.insert(lines, v.Text)
+		end
+		return table.concat(lines, "\n")
+	end
+	return Console
 end
 
 local function OnPlayerChange()
